@@ -3,16 +3,13 @@ from pydantic import BaseModel
 import pickle,joblib
 import numpy as np
 
-# Initialize app
 app = FastAPI()
 
-# Load model, scaler, encoder
 model = joblib.load("model.pkl")
 import joblib
 scaler = joblib.load("scaler.pkl")
 label_encoder = joblib.load("label_encoder.pkl")
 
-# 🔷 Define Input Schema (IMPORTANT)
 class CustomerData(BaseModel):
     age: float
     annual_income: float
@@ -27,16 +24,29 @@ class CustomerData(BaseModel):
     payment_method:str
     region:str      
 
-# Home route
 @app.get("/")
 def home():
     return {"message": "Customer Classification API is running"}
 
-# Prediction route
 @app.post("/predict")
 def predict(data: CustomerData):
+     payment_map = {
+        "Credit Card": 0,
+        "Debit Card": 1,
+        "UPI": 2,
+        "Cash": 3
+    }
+
+    region_map = {
+        "North": 0,
+        "South": 1,
+        "East": 2,
+        "West": 3
+    }
+    payment = payment_map.get(data.payment_method, 0)
+    region = region_map.get(data.region, 0)
+
     
-    # Convert input to array
     input_data = np.array([[
         data.age,
         data.annual_income,
@@ -52,13 +62,8 @@ def predict(data: CustomerData):
         data.region       
     ]])
 
-    # Scale input
     input_scaled = scaler.transform(input_data)
-
-    # Predict
     prediction = model.predict(input_scaled)
-
-    # Convert back to label
     result = label_encoder.inverse_transform(prediction)
 
     return {
