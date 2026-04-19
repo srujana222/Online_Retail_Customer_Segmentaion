@@ -2,7 +2,7 @@ fastapi
 uvicorn
 gunicorn
 pandas
-numpy==1.24.3
+numpy
 scikit-learn==1.2.2
 joblib
 xgboost==1.5.0
